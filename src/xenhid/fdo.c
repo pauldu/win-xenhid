@@ -70,7 +70,6 @@ typedef enum _DEVICE_PNP_STATE {
 struct _XENHID_FDO {
     PDEVICE_OBJECT              DeviceObject;
     PDEVICE_OBJECT              LowerDeviceObject;
-    ULONG                       References;
 
     DEVICE_PNP_STATE            DevicePnpState;
     DEVICE_PNP_STATE            PreviousDevicePnpState;
@@ -171,7 +170,7 @@ __FdoGetStorePath(
     )
 {
     UNREFERENCED_PARAMETER(Fdo);
-    return "vkbd/0";
+    return "device/vkbd/0";
 }
 
 PCHAR
@@ -1079,7 +1078,6 @@ FdoCreate(
     if (!NT_SUCCESS(status))
         goto fail6;
 
-    Fdo->References = 1;
     KeInitializeSpinLock(&Fdo->Lock);
 
     Info("%p (%s)\n",
@@ -1126,7 +1124,6 @@ FdoDestroy(
 {
     PDEVICE_OBJECT  DeviceObject = Fdo->DeviceObject;
 
-    ASSERT3U(Fdo->References, ==, 0);
     ASSERT3U(__FdoGetDevicePnpState(Fdo), ==, Deleted);
 
     Info("%p (%s)\n",
