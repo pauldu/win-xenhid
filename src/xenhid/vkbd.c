@@ -546,6 +546,8 @@ Vkbd_Create(
     NTSTATUS        status;
     PXENHID_VKBD    Vkbd;
 
+    Trace("====>\n");
+
     status = STATUS_NO_MEMORY;
     Vkbd = __VkbdAllocate(sizeof(XENHID_VKBD));
     if (Vkbd == NULL)
@@ -557,6 +559,8 @@ Vkbd_Create(
     KeInitializeDpc(&Vkbd->Dpc, VkbdDpc, Vkbd);
 
     *Context = (PXENHID_CONTEXT)Vkbd;
+
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
 
 fail1:
@@ -571,6 +575,8 @@ Vkbd_Destroy(
 {
     PXENHID_VKBD    Vkbd = (PXENHID_VKBD)Context;
 
+    Trace("====>\n");
+
     Vkbd->Frontend = NULL;
     RtlZeroMemory(&Vkbd->KeyState, sizeof(XENHID_KEYBOARD));
     RtlZeroMemory(&Vkbd->MouState, sizeof(XENHID_MOUSE));
@@ -579,6 +585,8 @@ Vkbd_Destroy(
 
     ASSERT(IsZeroMemory(Context, sizeof(XENHID_VKBD)));
     __VkbdFree(Context);
+
+    Trace("<==== STATUS_SUCCESS\n");
 }
 
 static FORCEINLINE PFN_NUMBER
@@ -597,6 +605,8 @@ Vkbd_Connect(
     NTSTATUS        status;
     PXENHID_VKBD    Vkbd = (PXENHID_VKBD)Context;
     PXENHID_FDO     Fdo = FrontendGetFdo(Vkbd->Frontend);
+
+    Trace("====>\n");
 
     status = STATUS_NO_MEMORY;
     Vkbd->Shared = __VkbdAllocate(PAGE_SIZE);
@@ -628,17 +638,22 @@ Vkbd_Connect(
     if (Vkbd->Evtchn == NULL)
         goto fail4;
     
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
 
 fail4:
+    Error("fail4\n");
     GNTTAB(RevokeForeignAccess, FdoGnttabInterface(Fdo), Vkbd->GrantRef);
 fail3:
+    Error("fail3\n");
     GNTTAB(Put, FdoGnttabInterface(Fdo), Vkbd->GrantRef);
     Vkbd->GrantRef = 0;
 fail2:
+    Error("fail2\n");
     __VkbdFree(Vkbd->Shared);
     Vkbd->Shared = NULL;
 fail1:
+    Error("fail1 (%08x)\n", status);
     return status;
 }
 
@@ -652,6 +667,8 @@ Vkbd_WriteStore(
     ULONG           Port;
     PXENHID_VKBD    Vkbd = (PXENHID_VKBD)Context;
     PXENHID_FDO     Fdo = FrontendGetFdo(Vkbd->Frontend);
+
+    Trace("====>\n");
 
     Port = EVTCHN(Port, FdoEvtchnInterface(Fdo), Vkbd->Evtchn);
 
@@ -675,10 +692,13 @@ Vkbd_WriteStore(
     if (!NT_SUCCESS(status))
         goto fail2;
 
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
 
 fail2:
+    Error("fail2\n");
 fail1:
+    Error("fail1 (%08x)\n", status);
     return status;
 }
 
@@ -689,6 +709,8 @@ Vkbd_Disconnect(
 {
     PXENHID_VKBD    Vkbd = (PXENHID_VKBD)Context;
     PXENHID_FDO     Fdo = FrontendGetFdo(Vkbd->Frontend);
+
+    Trace("====>\n");
 
     KeFlushQueuedDpcs();
 
@@ -701,6 +723,8 @@ Vkbd_Disconnect(
 
     __VkbdFree(Vkbd->Shared);
     Vkbd->Shared = NULL;
+
+    Trace("<==== STATUS_SUCCESS\n");
 }
 
 static VOID
@@ -725,12 +749,20 @@ Vkbd_GetDeviceAttributes(
 {
     UNREFERENCED_PARAMETER(Context);
 
+    Trace("====>\n");
+
     if (Length < sizeof(Vkbd_DeviceAttributes))
-        return STATUS_INVALID_BUFFER_SIZE;
+        goto fail1;
 
     RtlCopyMemory(Buffer, &Vkbd_DeviceAttributes, sizeof(Vkbd_DeviceAttributes));
     *Information = sizeof(Vkbd_DeviceAttributes);
+
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
+
+fail1:
+    Error("fail1 (%08x)\n", STATUS_INVALID_BUFFER_SIZE);
+    return STATUS_INVALID_BUFFER_SIZE;
 }
 
 static NTSTATUS
@@ -743,12 +775,20 @@ Vkbd_GetDeviceDescriptor(
 {
     UNREFERENCED_PARAMETER(Context);
 
+    Trace("====>\n");
+
     if (Length < sizeof(Vkbd_DeviceDescriptor))
-        return STATUS_INVALID_BUFFER_SIZE;
+        goto fail1;
 
     RtlCopyMemory(Buffer, &Vkbd_DeviceDescriptor, sizeof(Vkbd_DeviceDescriptor));
     *Information = sizeof(Vkbd_DeviceDescriptor);
+    
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
+
+fail1:
+    Error("fail1 (%08x)\n", STATUS_INVALID_BUFFER_SIZE);
+    return STATUS_INVALID_BUFFER_SIZE;
 }
 
 static NTSTATUS
@@ -761,12 +801,19 @@ Vkbd_GetReportDescriptor(
 {
     UNREFERENCED_PARAMETER(Context);
 
+    Trace("====>\n");
     if (Length < sizeof(Vkbd_ReportDescriptor))
-        return STATUS_INVALID_BUFFER_SIZE;
+        goto fail1;
 
     RtlCopyMemory(Buffer, Vkbd_ReportDescriptor, sizeof(Vkbd_ReportDescriptor));
     *Information = sizeof(Vkbd_ReportDescriptor);
+    
+    Trace("<==== STATUS_SUCCESS\n");
     return STATUS_SUCCESS;
+
+fail1:
+    Error("fail1 (%08x)\n", STATUS_INVALID_BUFFER_SIZE);
+    return STATUS_INVALID_BUFFER_SIZE;
 }
 
 static NTSTATUS
@@ -781,6 +828,9 @@ Vkbd_GetFeature(
     UNREFERENCED_PARAMETER(Buffer);
     UNREFERENCED_PARAMETER(Length);
     UNREFERENCED_PARAMETER(Information);
+    Trace("====>\n");
+
+    Trace("<==== STATUS_NOT_SUPPORTED\n");
     return STATUS_NOT_SUPPORTED;
 }
 
@@ -794,6 +844,9 @@ Vkbd_SetFeature(
     UNREFERENCED_PARAMETER(Context);
     UNREFERENCED_PARAMETER(Buffer);
     UNREFERENCED_PARAMETER(Length);
+    Trace("====>\n");
+
+    Trace("<==== STATUS_NOT_SUPPORTED\n");
     return STATUS_NOT_SUPPORTED;
 }
 
@@ -807,6 +860,9 @@ Vkbd_WriteReport(
     UNREFERENCED_PARAMETER(Context);
     UNREFERENCED_PARAMETER(Buffer);
     UNREFERENCED_PARAMETER(Length);
+    Trace("====>\n");
+
+    Trace("<==== STATUS_NOT_SUPPORTED\n");
     return STATUS_NOT_SUPPORTED;
 }
 
