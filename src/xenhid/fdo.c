@@ -1126,7 +1126,7 @@ FdoDestroy(
 
     ASSERT3U(__FdoGetDevicePnpState(Fdo), ==, Deleted);
 
-    Info("%p (%s)\n",
+    Info("0x%p (%s)\n",
          DeviceObject,
          __FdoGetStorePath(Fdo));
 
@@ -1143,8 +1143,6 @@ FdoDestroy(
 
     Fdo->LowerDeviceObject = NULL;
     Fdo->DeviceObject = NULL;
-
-    ASSERT(IsZeroMemory(Fdo, sizeof (XENHID_FDO)));
 }
 
 PXENBUS_STORE_INTERFACE

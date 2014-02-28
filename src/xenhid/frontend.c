@@ -124,8 +124,16 @@ FrontendDestroy(
     )
 {
     Frontend->Fdo = NULL;
+    Frontend->Connected = FALSE;
+    Frontend->StoreInterface = NULL;
 
-    ASSERT(IsZeroMemory(Frontend, sizeof(XENHID_FRONTEND)));
+    Trace("(%s)-%u\n", Frontend->BackendPath, Frontend->BackendDomain);
+
+    if (Frontend->BackendPath)
+        __FrontendFree(Frontend->BackendPath);
+    Frontend->BackendPath = NULL;
+    Frontend->BackendDomain = 0;
+
     __FrontendFree(Frontend);
 }
 

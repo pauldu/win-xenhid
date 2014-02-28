@@ -52,9 +52,9 @@ xenhid.sys=0,,
 [Citrix.NT$ARCH$]
 ; DisplayName		Section		DeviceID
 ; -----------		-------		--------
-%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XSC000&DEV_VKBD&REV_00000001
-%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XS0001&DEV_VKBD&REV_00000001
-%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XS0002&DEV_VKBD&REV_00000001
+%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XSC000&DEV_VKBD&REV_00000000
+%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XS0001&DEV_VKBD&REV_00000000
+%XenHidDesc%		=XenHid_Inst,	XENBUS\VEN_XS0002&DEV_VKBD&REV_00000000
 
 [XenHid_Inst] 
 CopyFiles=XenHid_Copyfiles
